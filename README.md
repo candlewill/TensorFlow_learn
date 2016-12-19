@@ -2,6 +2,13 @@
 
 This repo is for learning tensorflow. Many popular examples and tutorials are included in it.
 
+== Examples
+
+1. Linnear Regression
+2. NN
+3. CNN
+...
+
 == Dependencies
 
 1. TensorFlow 0.12
