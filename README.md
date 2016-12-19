@@ -1,6 +1,6 @@
 = TensorFlow Learning
 
-This repo is for learning tensorflow. Many popular examples and tutorials are included in it.
+This repo is for learning tensorflow. Many popular examples and tutorials are collected.
 
 == Examples
 
