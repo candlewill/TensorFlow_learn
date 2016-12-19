@@ -8,7 +8,6 @@ This repo is for learning tensorflow. Many popular examples and tutorials are co
 2. NN
 3. CNN
 4. DNN
-...
 
 == Dependencies
 
