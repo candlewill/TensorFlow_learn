@@ -49,7 +49,7 @@ def RNN(X, weights, biases):
     # convert X shape to ==> [128*28, 28 inputs]
     # 特别注意：每一个batch，神经元权值共享
     # 将同一个batch中的图片拼接在一起，以实现权值共享
-    X = tf.reshape(X, [-1, n_inputs])  # output dim: [128 batch * 28 steps, 28 hidden]
+    X = tf.reshape(X, [-1, n_inputs])  # output dim: [128 batch * 28 steps, 28 inputs]
     X_in = tf.matmul(X, weights["in"]) + biases["in"]  # output dim: [128*28, 128]
     # 还原成多个图片
     X_in = tf.reshape(X_in, [-1, n_steps, n_hidden_units])  # output dim: [128 batch, 28 steps, 128 hidden]
@@ -87,8 +87,20 @@ def RNN(X, weights, biases):
         If it is a (possibly nested) tuple of ints or `TensorShape`, this will
         be a tuple having the corresponding shapes.
     '''
+
     # hidden layer for output as the final results
-    results = tf.matmul(states[1], weights["out"]) + biases["out"]
+    # Two methods:
+    # Method 1:
+    # results = tf.matmul(final_state[1], weights['out']) + biases['out']
+    # or Method 2:
+    # unpack to list [(batch, outputs)..] * steps
+
+    # Method 1:
+    # results = tf.matmul(states[1], weights["out"]) + biases["out"]
+
+    # Method 2:
+    output = tf.unpack(tf.transpose(output, [1, 0, 2]))  # states is the last outputs
+    results = tf.matmul(output[-1], weights['out']) + biases['out']
 
     return results
 
