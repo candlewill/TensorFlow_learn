@@ -93,7 +93,9 @@ class LSTMRNN(object):
     def add_output_layer(self):
         # reshape cell_outputs to [batch_size*max_time, cell_size]
         layer_out_x = tf.reshape(self.cell_outputs, [-1, self.cell_size], name="3D_2_2D")
-        '''这里可能有问题，不应该和输入权值共享，应该加上name'''
+        '''这里可能有问题，不应该和输入权值共享，应该加上name
+        没有问题：因为这个函数包在了variable_scope里面，会在前面自动加上前缀
+        '''
         W = self._weight_variable([self.cell_size, self.output_size])
         b = self._bias_variable([self.output_size])
         with tf.name_scope("Wx_plus_b"):
