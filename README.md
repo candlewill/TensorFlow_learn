@@ -10,6 +10,8 @@ This repo is for learning tensorflow. Many popular examples and tutorials are co
 4. DNN
 5. RNN
 6. LSTM
+7. NN Auto-encoder
+8. LSTM Auto-encoder
 
 ## Dependencies
 

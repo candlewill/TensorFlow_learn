@@ -1,0 +1,8 @@
+*.py[co]
+*.sw[po]
+*~
+.*.swp
+*.egg-info
+
+*.txt
+models/
