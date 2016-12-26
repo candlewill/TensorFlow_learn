@@ -42,7 +42,6 @@ def plot_hist(inputs, inputs_norm):
                 the_range = (-7, 10)
             else:
                 the_range = (-1, 1)
-            input = np.array(input[0])
             plt.hist(input.ravel(), bins=15, range=the_range, color='#FF5733')
             plt.yticks(())
             if j == 1:
@@ -142,7 +141,18 @@ class NN(object):
             with tf.control_dependencies([ema_appy_op]):
                 return tf.identity(fc_mean), tf.identity(fc_var)
 
+        '''那如何确定我们是在 train 阶段还是在 test 阶段呢, 我们可以修改上面的算法, 想办法传入 on_train 参数, 你也可以把 on_train 定义成全局变量.
         mean, var = mean_var_with_update()
+        '''
+        # 修改后:
+        global on_train
+        mean, var = tf.cond(tf.constant(on_train),  # on_train 的值是 True/False
+                            mean_var_with_update,  # 如果是 True, 更新 mean/var
+                            lambda: (  # 如果是 False, 返回之前 fc_mean/fc_var 的Moving Average
+                                ema.average(fc_mean),
+                                ema.average(fc_var)
+                            )
+                            )
 
         wx_b = tf.nn.batch_normalization(wx_b, mean, var, shift, scale, epsilon)
         # similar with this two steps:
@@ -154,7 +164,7 @@ class NN(object):
 def run():
     # hyper-parameters
     seed = 1
-    n_layers = 7
+    n_layers = 3
     n_hidden_units = 30
     activation = tf.nn.tanh
 
@@ -179,25 +189,44 @@ def run():
         for i in range(250):
             if i % 50 == 0:
                 # plot histogram
+                ''' 注意：不可以单独运行，要一起运行，下面方式错误
                 all_inputs = sess.run([model.layer_inputs], feed_dict={model.xs: x_data, model.ys: y_data})
                 all_inputs_norm = sess.run([normalized_model.layer_inputs],
                                            feed_dict={normalized_model.xs: x_data, normalized_model.ys: y_data})
+                '''
+                all_inputs, all_inputs_norm = sess.run([model.layer_inputs, normalized_model.layer_inputs],
+                                                       feed_dict={model.xs: x_data, model.ys: y_data,
+                                                                  normalized_model.xs: x_data,
+                                                                  normalized_model.ys: y_data})
                 plot_hist(all_inputs, all_inputs_norm)
 
             # train on batch
             x_batch, y_batch = x_data[i * 10:i * 10 + 10], y_data[i * 10:i * 10 + 10]
 
+            ''' 同理，下面的方式错误
             sess.run([model.train_op],
                      feed_dict={model.xs: x_batch, model.ys: y_batch})
             sess.run([normalized_model.train_op],
                      feed_dict={normalized_model.xs: x_batch,
                                 normalized_model.ys: y_batch})
-
+            '''
+            sess.run([model.train_op, normalized_model.train_op],
+                     feed_dict={model.xs: x_batch, model.ys: y_batch, normalized_model.xs: x_batch,
+                                normalized_model.ys: y_batch})
+            global on_train
+            on_train = False
             # record cost
             if i % record_step == 0:
+                ''' 同理
                 cost_hist.append(sess.run(model.cost, feed_dict={model.xs: x_data, model.ys: y_data}))
                 cost_hist_norm.append((sess.run(normalized_model.cost,
                                                 feed_dict={normalized_model.xs: x_data, normalized_model.ys: y_data})))
+                '''
+                ch, chn = sess.run([model.cost, normalized_model.cost], feed_dict={model.xs: x_data, model.ys: y_data,
+                                                                                   normalized_model.xs: x_data,
+                                                                                   normalized_model.ys: y_data})
+                cost_hist.append(ch)
+                cost_hist_norm.append(chn)
 
         # show cost
         plt.ioff()
@@ -212,4 +241,5 @@ def run():
 
 
 if __name__ == '__main__':
+    on_train = True
     run()
